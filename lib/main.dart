@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:move_to_background/move_to_background.dart';
 import 'package:sample_project/setting.dart';
 import 'package:sample_project/util/data.dart';
 import 'package:sample_project/util/system.dart';
@@ -27,7 +28,14 @@ class MyApp extends StatefulWidget {
   }
 }
 
-class MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    System.data.global.testService.startService();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -70,6 +78,30 @@ class MyAppState extends State<MyApp> {
         ),
       ),
     );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        debugPrint("app state resumed");
+        break;
+      case AppLifecycleState.inactive:
+        debugPrint("app state inactive");
+        break;
+      case AppLifecycleState.paused:
+        debugPrint("app state paused");
+        if (data.sendToBackGround == false) {
+          data.sendToBackGround = true;
+        } else {
+          MoveToBackground.moveTaskToBack();
+        }
+        break;
+      case AppLifecycleState.detached:
+        debugPrint("app state detached");
+        MoveToBackground.moveTaskToBack();
+        break;
+    }
   }
 }
 
